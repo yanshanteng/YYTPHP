@@ -1,0 +1,18 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>{$title}</title>
+<meta name="author" content="YYT" />
+</head>
+<body>
+{$content}
+<ul>
+<li>为什么debug显示加载DB.php? 我没查询数据库啊</li>
+<li>因为Debug.php调用了查询数据次数的方法 <font color="green">DB::countQuery()</font></li>
+<li>这是一个后台地址的链接: {Y::url('admin:article/add')}</li>
+<li><a href="{Y::url('index/phpinfo')}" target="_blank">phpinfo()</a></li>
+</ul>
+<p><a href="{Y::url('index/clear')}">删除缓存</a></p>
+</body>
+</html>
