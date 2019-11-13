@@ -2,7 +2,7 @@
 
 ### 入口文件
 
-```
+```php
 //定义根目录
 define('ROOT_PATH', __DIR__);
 require '../YYTPHP/Y.php';
@@ -29,7 +29,7 @@ Y::run(ROOT_PATH.'/controller');
 # controller/_EmptyAction.php 404
 
 
-```
+```php
 class _EmptyAction extends Action
 {
     public function _empty()
@@ -41,7 +41,7 @@ class _EmptyAction extends Action
 
 ### config/db.php 数据库配置
 
-```
+```php
 return [
     //eg: DB::server(table)->fetch();
     'server' => [
@@ -59,7 +59,7 @@ return [
 ### controller/index 控制器
 
 
-```
+```php
 class IndexAction extends CommonAction
 {
     public function index()
@@ -74,7 +74,7 @@ class IndexAction extends CommonAction
 ### 数据库操作
 
 
-```
+```php
 //简单查询
 DB::server('member')->where('id', 1)->fetch();
 
@@ -116,7 +116,7 @@ DB::server('member')->avg('id');
 ### 模板语法
 
 
-```
+```php
 //包含模板
 {template="header"}
 
@@ -141,7 +141,7 @@ DB::server('member')->avg('id');
 ### 一个带缓存的 controller/IndexAction.php
 
 
-```
+```php
 
 class IndexAction extends Action
 {
