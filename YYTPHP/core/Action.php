@@ -73,7 +73,7 @@ abstract class Action extends Template
             case 'JSON':
                 $this->assign($this->var);
                 $this->unAssign('var');
-                echo json_encode($this->vars());
+                echo json_encode($this->vars(), JSON_UNESCAPED_UNICODE + JSON_NUMERIC_CHECK);
             break;
             case 'XML':
                 $this->assign($this->var);
