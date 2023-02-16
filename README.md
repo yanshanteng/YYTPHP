@@ -1,5 +1,14 @@
 # 当前版本为 1.7.0
 
+# .htaccess
+
+```
+RewriteEngine on
+RewriteCond %{SCRIPT_FILENAME} !-f
+RewriteCond %{SCRIPT_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?r=$1 [L]
+```
+
 ### 入口文件
 
 ```php
