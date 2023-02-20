@@ -1,5 +1,3 @@
-# 当前版本为 1.7.0
-
 # .htaccess
 
 ```
@@ -22,8 +20,8 @@ require '../YYTPHP/Y.php';
 //Y::config('db', require ROOT_PATH.'/config/db.php');
 
 //(初始化: 页面gzip, debug信息, 时差, 提交的请求, 路由)
-//在不需要加载控制器调用 
-//Y::init(); 
+//在不需要加载控制器调用
+//Y::init();
 
 //设置配置
 $config['debug'] = true;
@@ -108,7 +106,7 @@ DB::server('member')
     ->limit(10, 20)
     ->order('m.id DESC')
     ->fetchAll();
-    
+
 //记录数
 DB::server('member')->count('id');
 //最大
