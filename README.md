@@ -9,6 +9,7 @@ RewriteRule ^(.*)$ index.php?r=$1 [L]
 
 ### 入口文件
 
+
 ```php
 //定义根目录
 define('ROOT_PATH', __DIR__);
@@ -30,7 +31,6 @@ Y::config($config);
 //运行控制器
 //默认加载 IndexAction.php 不存在则 _EmptyAction.php
 Y::run(ROOT_PATH.'/controller');
-
 ```
 
 # controller/_EmptyAction.php 404
@@ -48,10 +48,11 @@ class _EmptyAction extends Action
 
 ### config/db.php 数据库配置
 
+
 ```php
 return [
-    //eg: DB::server(table)->fetch();
-    'server' => [
+    //eg: DB::shop(table)->fetch();
+    'shop' => [
         'db_driver'                 => 'mysqli',
         'db_type'                   => 'mysql',
         'db_host'                   => 'localhost',
@@ -59,23 +60,14 @@ return [
         'db_user'                   => 'root',
         'db_password'               => 'root',
         'db_long_connect'           => false,
-    ]
+    ],
+    'cms' => [
+        'db_driver'                 => 'PDO',
+        'db_type'                   => 'sqlite',
+        'db_host'                   => ROOT_PATH.'/db',
+        'db_name'                   => 'data.sqlite',
+    ],
 ]
-```
-
-### controller/index 控制器
-
-
-```php
-class IndexAction extends CommonAction
-{
-    public function index()
-    {
-        //JSON格式输出 也可通过配置
-        //Y::config('display_format', HTML | JSON| XML)
-        $this->format('json')->display();
-    }
-}
 ```
 
 ### 数据库操作
@@ -83,14 +75,14 @@ class IndexAction extends CommonAction
 
 ```php
 //简单查询
-DB::server('member')->where('id', 1)->fetch();
+DB::shop('member')->where('id', 1)->fetch();
 
 //获取SQL
-DB::server('member')->where('id', 1)->sql();
-DB::server('member')->where('id', 1)->fetchSql(true)->fetch();
+DB::shop('member')->where('id', 1)->sql();
+DB::shop('member')->where('id', 1)->fetchSql(true)->fetch();
 
 //连贯查询
-DB::server('member')
+DB::shop('member')
     ->alias('m')
     ->join('member_data md', 'md.member_id = m.id')
     //支持INNER 默认 LEFT RIGHT FULL
@@ -108,16 +100,36 @@ DB::server('member')
     ->fetchAll();
 
 //记录数
-DB::server('member')->count('id');
+DB::shop('member')->count('id');
 //最大
-DB::server('member')->max('id');
+DB::shop('member')->max('id');
 //最小
-DB::server('member')->min('id');
+DB::shop('member')->min('id');
 //总和
-DB::server('member')->sum('id');
+DB::shop('member')->sum('id');
 //平均
-DB::server('member')->avg('id');
+DB::shop('member')->avg('id');
 
+//查询第二条配置的数据库
+DB::cms('article AS a, category AS c')
+    ->field('a.*,c.name AS catName')
+    ->where('a.cid = c.id')
+    ->fetch();
+```
+
+### controller/index 控制器
+
+
+```php
+class IndexAction extends CommonAction
+{
+    public function index()
+    {
+        //JSON格式输出 也可通过配置
+        //Y::config('display_format', HTML | JSON| XML)
+        $this->format('json')->display();
+    }
+}
 ```
 
 ### 模板语法
