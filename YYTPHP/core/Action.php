@@ -11,11 +11,6 @@ abstract class Action extends Template
 
     private $_call = [];
 
-    public function __construct()
-    {
-        $this->var['template_url'] = Y::templateUrl();
-    }
-
     private static function _get_called_method()
     {
         $backtrace = debug_backtrace();
@@ -67,57 +62,54 @@ abstract class Action extends Template
             if ($action != 'index' && $template != '_empty') $template .= '/'.$action;
             if ($template == '_empty') $template = $action;
         }
-        $this->var['template'] = $template;
-        $this->assign('var', $this->var);
+
         switch (strtoupper($viewFormat)) {
             case 'JSON':
                 $this->assign($this->var);
-                $this->unAssign('var');
-                echo json_encode($this->vars(), JSON_UNESCAPED_UNICODE + JSON_NUMERIC_CHECK);
+                echo json_encode($this->vars(), JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
             break;
             case 'XML':
                 $this->assign($this->var);
-                $this->unAssign('var');
                 echo self::_xmlEncode($this->vars());
             break;
-            default: parent::display($template);
+            default:
+                $this->var['template'] = $template;
+                $this->var['template_url'] = Y::templateUrl();
+                $this->assign('var', $this->var);
+                parent::display($template);
         }
     }
 
-    private function _info($type, $content = '', $jump = 1, $template = '')
+    private function _info($type, $content = '')
     {
-        if ($jump == 1) $jump = $_SERVER['HTTP_REFERER'];
-        if ($jump == 2) $jump = 'javascript:history.back();';
         if (is_array($content)) {
             $data = $content;
         } else {
             if ($content) $data['content'] = $content;
         }
         $data['type'] = $type;
-        if ($jump) $data['jump'] = $jump;
-        if (!$template) $template = $type;
         $this->var = array_merge($this->var, $data);
-        $this->display($template);
+        $this->display($type);
         exit();
     }
 
-    protected function error($content = '', $jump = null, $template = '')
+    protected function error($content = '')
     {
-        $this->_info('error', $content, $jump, $template);
+        $this->_info('error', $content);
     }
 
-    protected function success($content = '', $jump = null, $template = '')
+    protected function success($content = '')
     {
-        $this->_info('success', $content, $jump, $template);
+        $this->_info('success', $content);
     }
 
-    protected function errorJson($content = '', $jump = null, $template = '')
+    protected function errorJson($content = '')
     {
-        $this->format('json')->error($content, $jump, $template);
+        $this->format('json')->error($content);
     }
 
-    protected function successJson($content = '', $jump = null, $template = '')
+    protected function successJson($content = '')
     {
-        $this->format('json')->success($content, $jump, $template);
+        $this->format('json')->success($content);
     }
 }

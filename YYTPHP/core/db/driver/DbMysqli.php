@@ -7,20 +7,20 @@
 
 class DbMysqli extends DB
 {
-    private $_config;
+    public $config;
 
     public function __construct($config)
     {
-        $this->_config = $config;
-        if (isset($this->_config['db_table'])) {
-            $this->_config['db_table'] = '`'.$this->_config['db_table'].'`';
+        $this->config = $config;
+        if (isset($this->config['db_table'])) {
+            $this->config['db_table'] = '`'.$this->config['db_table'].'`';
         }
     }
 
     public function config($key = '')
     {
-        if ($key) return $this->_config[$key];
-        return $this->_config;
+        if ($key) return $this->config[$key];
+        return $this->config;
     }
 
     private static $_connect = [];
@@ -30,19 +30,19 @@ class DbMysqli extends DB
         $connectId = $this->connectId;
         if (!$connectId) $connectId = $this->connectId();
         if (isset(self::$_connect[$connectId])) return self::$_connect[$connectId];
-        if ($this->_config['db_long_connect'] == true) {
-            if (substr(PHP_VERSION, 0, 3) < 5.3) throw new YException(__METHOD__.' [PHP5.3以上才支持Mysqli长连接, 需将db_long_connect配置为false]');
+        if ($this->config['db_long_connect'] == true) {
+            if (substr(PHP_VERSION, 0, 3) < 5.3) throw new YException(__METHOD__.' [PHP5.3以上才支持Mysqli长连接, 需将db_long_connect配置为false]', true);
         }
-        $host = $this->_config['db_long_connect'] == true ? 'p:'.$this->_config['db_host'] : $this->_config['db_host'];
-        self::$_connect[$connectId] = new Mysqli($host,
-            $this->_config['db_user'],
-            $this->_config['db_password'],
-            $this->_config['db_name'],
-            $this->_config['db_port']);
+        $host = $this->config['db_long_connect'] == true ? 'p:'.$this->config['db_host'] : $this->config['db_host'];
+        @self::$_connect[$connectId] = new Mysqli($host,
+            $this->config['db_user'],
+            $this->config['db_password'],
+            $this->config['db_name'],
+            $this->config['db_port']);
         if (self::$_connect[$connectId]->connect_errno) {
-            throw new YException(__METHOD__.' [数据库连接失败: '.iconv('GBK', 'UTF-8', self::$_connect[$connectId]->connect_error).']');
+            throw new YException(__METHOD__.' [数据库连接失败: '.iconv('GBK', 'UTF-8', self::$_connect[$connectId]->connect_error).']', true);
         }
-        self::$_connect[$connectId]->set_charset($this->_config['db_charset']);
+        self::$_connect[$connectId]->set_charset($this->config['db_charset']);
         return self::$_connect[$connectId];
     }
 
@@ -68,7 +68,7 @@ class DbMysqli extends DB
         }
         if (!$method) return $result;
 
-        if (!$stmt) throw new YException(__METHOD__.' [SQL错误: '.$sql.']<br />错误提示: '.$Mysqli->error);
+        if (!$stmt) throw new YException(__METHOD__.' [SQL错误: '.$sql.']<br />错误提示: '.$Mysqli->error, true);
 
         $result = [];
         switch ($method) {
@@ -94,22 +94,22 @@ class DbMysqli extends DB
 
     public function fields($table = '')
     {
-        $this->_config['db_table'] = $table ? $table : $this->_config['db_table'];
-        if (!$this->_config['db_table']) return;
-        $cacheFile = Y::config('cache_path').'/db/'.$this->_config['db_name'].'.'.$this->_config['db_table'].'.php';
+        $this->config['db_table'] = $table ? $table : $this->config['db_table'];
+        if (!$this->config['db_table']) return;
+        $cacheFile = Y::config('cache_path').'/db/'.$this->config['db_name'].'.'.$this->config['db_table'].'.php';
         $cacheFile = str_replace('`', '', $cacheFile);
         if (is_file($cacheFile)) {
             return unserialize(str_replace('<?php exit();//', '', file_get_contents($cacheFile)));
         }
         $startTime = microtime(true);
         $Mysqli = $this->_connect();
-        $sql = 'DESC '.$this->_config['db_table'];
+        $sql = 'DESC '.$this->config['db_table'];
         $query = $Mysqli->query($sql);
         if (!$query) {
-            throw new YException(__METHOD__.' [获取表'.$this->_config['db_table'].'字段失败: '.$Mysqli->error.']');
+            throw new YException(__METHOD__.' [获取表'.$this->config['db_table'].'字段失败: '.$Mysqli->error.']', true);
         }
         $fields = [];
-        while ($row = $query->fetch_assoc()) $fields[] = strtolower($row['Field']);
+        while ($row = $query->fetch_assoc()) $fields[] = $row['Field'];
         self::$countQuery++;
         $stopTime = microtime(true);
         Y::debug('MYSQLI [用时<font color="red">'.round(($stopTime - $startTime), 4).'</font>秒]: '.$sql, 2);

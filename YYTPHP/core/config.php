@@ -41,7 +41,7 @@ return [
     'log_path'                  => ROOT_PATH.'/data/log',
 
     'url_space'                 => '/',
-    'url_suffix'                => '.html',
+    'url_suffix'                => '', // .html .xml 等等
     'url_rewrite'               => false,
     'url_base_path'             => '',
 

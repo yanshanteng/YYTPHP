@@ -7,6 +7,7 @@
 
 
 if (PHP_VERSION < '5.4') exit('PHP_VERSION >= 5.4');
+if (PHP_VERSION >= '5.7') exit('PHP_VERSION <= 5.6');
 
 //记录运行时间与内存消耗
 define('BEGIN_TIME', microtime(true));
@@ -27,11 +28,11 @@ defined('ROOT_PATH') OR define('ROOT_PATH', dirname(__DIR__));
 //定义根URL路径
 defined('ROOT_URL') OR define('ROOT_URL', Y::rootUrl());
 
-//框架路径
-define('YYTPHP_PATH', __DIR__);
-
 //定义域名
 define('DOMAIN', Y::domain());
+
+//框架路径
+define('YYTPHP_PATH', __DIR__);
 
 //定义时间戳
 define('TIME', isset($_SERVER['REQUEST_TIME']) ? $_SERVER['REQUEST_TIME'] : time());
@@ -51,7 +52,7 @@ Y::regAutoload($autoload);
 
 abstract class Y
 {
-    const VERSION = '1.7.0';
+    const VERSION = '1.7.2';
 
     /**
      * 初始化: 页面gzip, debug信息, 时差, 提交的请求, 路由
@@ -498,7 +499,7 @@ abstract class Y
         } else if (isset($_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] && strcasecmp($_SERVER['REMOTE_ADDR'], 'unknown')) {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
-        return preg_match ('/[\d\.]{7,15}/', $ip, $matches) ? $matches[0] : '';
+        return preg_match ('/[\d\.]{7,15}/', $ip, $matches) ? $matches[0] : '127.0.0.1';
     }
 
     /**
@@ -574,6 +575,41 @@ abstract class Y
                 header('Pragma: no-cache');
                 break;
             default: header($type);
+        }
+    }
+
+    /**
+     * 快速读写缓存
+     * @param mixed 缓存名称 null 为删除全部缓存
+     * @param mixed null 为删除
+     * return mixed
+     */
+    public static function cache($name, $data = '')
+    {
+        $path = self::config('cache_path');
+        $file = $path.'/YCache_'.$name.'.php';
+
+        if (is_null($name)) {
+            //删除所有缓存
+            foreach (glob($path.'/YCache_*.php') as $file) {
+                if (is_file($file)) unlink($file);
+            }
+            return;
+        }
+        if (is_string($name)) {
+            if (is_null($data)) {
+                //删除单个缓存
+                if (is_file($file)) unlink($file);
+                return;
+            } else if ($data !== '') {
+                //写入
+                Y::makeDir(dirname($file));
+                return file_put_contents($file, '<?php exit();//'.serialize($data));
+            }
+            //读取
+            if (is_file($file)) {
+                return unserialize(str_replace('<?php exit();//', '', file_get_contents($file)));
+            }
         }
     }
 

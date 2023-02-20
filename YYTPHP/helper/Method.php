@@ -168,7 +168,7 @@ abstract class Method
      * @param string ASC 正序 DESC 倒序
      * @return array
      */
-    public static function multiArraySort($multiArray, $sortKey, $sort = 'DESC')
+    public static function arraySort($multiArray, $sortKey, $sort = 'DESC')
     {
         if (is_array($multiArray)) {
             foreach ($multiArray as $row) {

@@ -21,21 +21,26 @@ abstract class DB
         'db_long_connect'  => true,
     ];
 
+    private static $_connect = [];
+
     public static function __callStatic($configName, $table = '')
     {
         $dbConfig = Y::config('db');
         if (!isset($dbConfig[$configName])) {
-            throw new YException('数据库配置有误');
+            throw new YException('数据库配置有误', true);
         }
         $config = $dbConfig[$configName];
         $config['db_table'] = reset($table);
         self::$_config = array_merge(self::$_config, $config);
+
+        $connectId = md5(json_encode($dbConfig[$configName]));
+        if (!empty(self::$_connect[$connectId])) {
+            self::$_connect[$connectId]->config = self::$_config;
+            return self::$_connect[$connectId];
+        }
         $driver = 'Db'.ucwords(self::$_config['db_driver']);
-        $flag = md5(serialize(self::$_config));
-        static $instance = [];
-        if (isset($instance[$flag])) return $instance[$flag];
-        $instance[$flag] = new $driver(self::$_config);
-        return $instance[$flag];
+        self::$_connect[$connectId] = new $driver(self::$_config);
+        return self::$_connect[$connectId];
     }
 
     private $_call = [];
@@ -43,8 +48,8 @@ abstract class DB
     protected function resetCall()
     {
         $call = $this->_call;
-        unset($call['multi']);
         $this->_call = [];
+        unset($call['multi']);
         return $call;
     }
 
@@ -59,12 +64,12 @@ abstract class DB
                 $this->_call[$method] = $args;
             }
         } else {
-            throw new YException(__METHOD__.'调用'.get_class($this).'::'.$method.'不存在');
+            throw new YException(__METHOD__.'调用'.get_class($this).'::'.$method.'不存在', true);
         }
         return $this;
     }
 
-    public function where($field, $op = null, $condition = null)
+    public function where($field, $op = false, $condition = null)
     {
         $args = func_get_args();
         array_shift($args);
@@ -72,7 +77,7 @@ abstract class DB
         return $this;
     }
 
-    public function whereOr($field, $op = null, $condition = null)
+    public function whereOr($field, $op = false, $condition = null)
     {
         $args = func_get_args();
         array_shift($args);
@@ -171,8 +176,9 @@ abstract class DB
         } else if (strtoupper($param['op']) == 'EXP') {
             $result .= $field.' '.$param['condition'];
         } else {
-            //NULL
-            if (is_null($param['op'])) {
+            if ($param['op'] === false) {
+                $result .= $field;
+            } else if (is_null($param['op'])) {
                 $result .= $field.' IS NULL';
             } else if (in_array(strtoupper($param['op']), ['NULL', 'NOT NULL'])) {
                 $result .= $field.' IS '.strtoupper($param['op']);
@@ -191,7 +197,7 @@ abstract class DB
                 if (isset($call['where'][$logic])) {
                     $items = [];
                     foreach ($call['where'][$logic] as $field => $val) {
-                        if (!is_array($val)) $val = ['=', $val];
+                        if (!is_array($val) && !is_null($val)) $val = ['=', $val];
                         $items[] = $this->_parseWhereItem($logic, $field, $val);
                     }
                     $result .= ' '.$logic.' '.join(' '.$logic.' ', $items);
@@ -275,11 +281,20 @@ abstract class DB
 
     private function _table($alias = '', $debug = true)
     {
-        if ($debug) {
-            $fields = $this->fields();
-            if ($fields) Y::debug('表<b>'.self::$_config['db_name'].'.'.self::$_config['db_table'].'</b>结构: '.join(',', $fields), 2);
+        $tableArr = explode(',', self::$_config['db_table']);
+        $table = '';
+        foreach ($tableArr as $str) {
+            $str = trim($str);
+            $spaceArr = explode(' ', $str);
+            $table .= '`';
+            $table .= $spaceArr[0];
+            $table .= '`';
+            foreach ($spaceArr as $index => $_str) {
+                if ($index > 0 && $_str) $table .= ' '.$_str;
+            }
+            $table .= ',';
         }
-        $table = '`'.self::$_config['db_table'].'`';
+        $table = rtrim($table, ',');
         if ($alias) $table .= ' '.trim($alias);
         return $table;
     }
@@ -327,7 +342,9 @@ abstract class DB
     //留空删除临时缓存(有过期时间的) *为所有
     public static function clearCache($filename = '')
     {
-        if (!$filename) $filename = 'temp_*';
+        if ($filename != '*') {
+            $filename = $filename ? 'long_'.$filename : $filename = 'temp_*';
+        }
         $cachePath = Y::config('cache_path').'/db';
         $files = glob($cachePath.'/'.$filename.'.php');
         if (empty($files)) return;
@@ -493,7 +510,7 @@ abstract class DB
         if (is_array($data)) {
             $fields = $this->fields();
             foreach ($data as $field => $value) {
-                if (in_array(strtolower($field), $fields)) $result[$field] = $value;
+                if (in_array($field, $fields)) $result[$field] = $value;
             }
         }
         return $result;

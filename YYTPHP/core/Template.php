@@ -20,11 +20,6 @@ class Template
         }
     }
 
-    public function unAssign($key)
-    {
-        unset($this->_vars[$key]);
-    }
-
     public function vars()
     {
         return $this->_vars;
@@ -51,7 +46,7 @@ class Template
                 Y::makeDir(dirname($compileFile));
                 file_put_contents($compileFile, $content);
             } else {
-                throw new YException(__METHOD__.' [找不到视图文件: '.$templateFile.']');
+                throw new YException(__METHOD__.' [找不到模板文件: '.$templateFile.']');
             }
         }
         return $compileFile;
@@ -111,7 +106,7 @@ class Template
             $content = ob_get_clean();
             return $content;
         }
-        throw new YException(__METHOD__.' [找不到视图编译文件: '.$__file__.']');
+        throw new YException(__METHOD__.' [找不到模板编译文件: '.$__file__.']');
     }
 
     public static function cacheFile()

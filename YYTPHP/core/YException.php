@@ -11,6 +11,7 @@ class YException extends Exception
     {
         $args = func_get_args();
         parent::__construct(serialize($args));
+        if ($args[1]) Y::debug('<font color="red">'.$args[0].'</font>');
     }
 
     public function message()
